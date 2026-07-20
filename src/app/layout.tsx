@@ -4,8 +4,8 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "ds-go",
   description: "Scivill이 만든 서비스를 하나의 계정으로 만나보세요.",
-  openGraph: { images: ["/og-image.png"] },
-  twitter: { card: "summary_large_image", images: ["/og-image.png"] },
+  openGraph: { images: ["https://dsgo.vercel.app/og-image.png"] },
+  twitter: { card: "summary_large_image", images: ["https://dsgo.vercel.app/og-image.png"] },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
