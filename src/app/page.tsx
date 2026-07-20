@@ -212,6 +212,10 @@ export default function Home() {
       </footer>
 
       <div className="footer-legal">
+        <div className="footer-legal-logos">
+          <img src="/scivill-emblem.png" alt="Scivill" />
+          <img src="/daeshin-logo.png" alt="대전대신고등학교" />
+        </div>
         <nav>
           <a href="https://scivill.vercel.app/terms" target="_blank" rel="noopener noreferrer">이용약관</a>
           <a href="https://scivill.vercel.app/privacy" target="_blank" rel="noopener noreferrer">개인정보처리방침</a>

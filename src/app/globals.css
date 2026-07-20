@@ -509,11 +509,34 @@ footer > span:last-child {
 
 .footer-legal {
   border-top: 1px solid rgba(255,255,255,0.06);
-  padding: 12px 0;
+  padding: 14px 0;
   width: min(100% - 48px, 1180px);
   margin: 0 auto;
   display: flex;
-  justify-content: center;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-legal-logos {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.footer-legal-logos img:first-child {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.35;
+  filter: brightness(1.2);
+}
+
+.footer-legal-logos img:last-child {
+  height: 20px;
+  width: auto;
+  object-fit: contain;
+  opacity: 0.25;
+  filter: brightness(1.5) contrast(1.1);
 }
 
 .footer-legal nav {
