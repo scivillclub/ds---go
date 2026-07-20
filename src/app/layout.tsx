@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ds-go | Scivill 서비스 허브",
+  title: "ds-go",
   description: "Scivill이 만든 서비스를 하나의 계정으로 만나보세요.",
 };
 
