@@ -194,7 +194,7 @@ export default function Home() {
           <div>
             <span>ONE ACCOUNT, EVERYWHERE</span>
             <h2>한 번의 로그인으로, 모든 서비스를</h2>
-            <p>ds-go 계정 하나면 서비스마다 다시 가입할 필요가 없습니다.</p>
+            <p>ds-go 계정으로 모든 서비스를 만나보세요!</p>
           </div>
           <a href={loginUrl} className="sso-link focus-ring">
             ds-go 로그인
@@ -210,6 +210,14 @@ export default function Home() {
         <p>Science × Technology × Imagination</p>
         <span>© {new Date().getFullYear()} Scivill. All rights reserved.</span>
       </footer>
+
+      <div className="footer-legal">
+        <nav>
+          <a href="https://scivill.vercel.app/terms" target="_blank" rel="noopener noreferrer">이용약관</a>
+          <a href="https://scivill.vercel.app/privacy" target="_blank" rel="noopener noreferrer">개인정보처리방침</a>
+          <a href="https://scivill.vercel.app/licenses" target="_blank" rel="noopener noreferrer">오픈소스 라이선스</a>
+        </nav>
+      </div>
     </div>
   );
 }
