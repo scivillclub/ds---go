@@ -160,26 +160,27 @@ export default function Home() {
 
           <div className="service-grid">
             {services.map((service, index) => (
-              <article className="service-card" key={service.name}>
+              <a
+                key={service.name}
+                href={service.href}
+                target="_blank"
+                rel="noreferrer"
+                className="service-card focus-ring"
+                aria-label={`${service.name} 바로가기 (새 창)`}
+              >
                 <div className={`icon-box bg-gradient-to-br ${service.accent}`}>
                   {service.icon}
                 </div>
                 <span className="card-number">0{index + 1}</span>
                 <h3>{service.name}</h3>
                 <p>{service.description}</p>
-                <a
-                  href={service.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="card-link focus-ring"
-                  aria-label={`${service.name} 바로가기 (새 창)`}
-                >
+                <span className="card-link">
                   바로가기
                   <svg viewBox="0 0 20 20" aria-hidden="true">
                     <path d="M4 10h12M11 5l5 5-5 5" />
                   </svg>
-                </a>
-              </article>
+                </span>
+              </a>
             ))}
           </div>
         </section>
