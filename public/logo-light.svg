@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 200" fill="none">
+  <!-- 세로 바 -->
+  <rect x="12" y="10" width="14" height="160" fill="#111111"/>
+  <!-- ds -->
+  <text x="44" y="90" font-family="'Arial Black', 'Helvetica Neue', sans-serif" font-weight="900" font-size="62" fill="#111111" letter-spacing="-2">ds</text>
+  <!-- GO -->
+  <text x="38" y="162" font-family="'Arial Black', 'Helvetica Neue', sans-serif" font-weight="900" font-size="86" fill="#111111" letter-spacing="-3">GO</text>
+  <!-- 점 -->
+  <circle cx="232" cy="148" r="16" fill="#111111"/>
+  <!-- FOR DSHS -->
+  <text x="44" y="192" font-family="'Arial', sans-serif" font-weight="400" font-size="18" fill="#111111" letter-spacing="5">FOR DSHS</text>
+</svg>
