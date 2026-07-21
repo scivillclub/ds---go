@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { AuthNavButton } from "@/components/auth-nav-button";
 
 const serviceUrls = {
   deepthink:
@@ -120,12 +121,7 @@ export default function Home() {
             <a href="/settings" className="services-link">
               설정
             </a>
-            <a className="login-button focus-ring" href={loginUrlWithReturn("/")}>
-              로그인
-              <svg viewBox="0 0 20 20" aria-hidden="true">
-                <path d="m7.5 4.5 5 5-5 5" />
-              </svg>
-            </a>
+            <AuthNavButton loginHref={loginUrlWithReturn("/")} />
           </div>
         </nav>
       </header>
