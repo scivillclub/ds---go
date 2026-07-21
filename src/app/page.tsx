@@ -73,7 +73,13 @@ const services: Array<{
   },
 ];
 
-const loginUrl = process.env.NEXT_PUBLIC_DSGO_ACCOUNT_URL ?? "https://dsgoaccount.vercel.app";
+const accountUrl = process.env.NEXT_PUBLIC_DSGO_ACCOUNT_URL ?? "https://dsgoaccount.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dsgo.vercel.app";
+
+function loginUrlWithReturn(returnTo: string) {
+  const ssoCallback = `${siteUrl}/api/auth/sso?return_to=${encodeURIComponent(returnTo)}`;
+  return `${accountUrl}/?redirect_uri=${encodeURIComponent(ssoCallback)}`;
+}
 
 function Logo({ compact = false }: { compact?: boolean }) {
   const size = compact ? 56 : 80;
@@ -114,7 +120,7 @@ export default function Home() {
             <a href="/settings" className="services-link">
               설정
             </a>
-            <a className="login-button focus-ring" href={loginUrl}>
+            <a className="login-button focus-ring" href={loginUrlWithReturn("/")}>
               로그인
               <svg viewBox="0 0 20 20" aria-hidden="true">
                 <path d="m7.5 4.5 5 5-5 5" />
@@ -197,7 +203,7 @@ export default function Home() {
             <h2>한 번의 로그인으로, 모든 서비스를</h2>
             <p>ds-go 계정으로 모든 서비스를 만나보세요!</p>
           </div>
-          <a href={loginUrl} className="sso-link focus-ring">
+          <a href={loginUrlWithReturn("/")} className="sso-link focus-ring">
             ds-go 로그인
             <svg viewBox="0 0 20 20" aria-hidden="true">
               <path d="m7.5 4.5 5 5-5 5" />

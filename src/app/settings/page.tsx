@@ -5,16 +5,17 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import Image from "next/image";
 
 const accountUrl =
-  process.env.NEXT_PUBLIC_DSGO_ACCOUNT_URL ?? "http://localhost:3000";
+  process.env.NEXT_PUBLIC_DSGO_ACCOUNT_URL ?? "https://dsgoaccount.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dsgo.vercel.app";
 
-type User = { id: string; username: string; displayName: string; role: string; email: string } | null;
+type User = { id: string; role: string } | null;
 
 export default function SettingsPage() {
   const [user, setUser] = useState<User>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${accountUrl}/api/auth/me`, { credentials: "include" })
+    fetch("/api/auth/me", { credentials: "include", cache: "no-store" })
       .then((r) => r.ok ? r.json() : null)
       .then((d) => { if (d?.ok) setUser(d.user); })
       .catch(() => {})
@@ -22,9 +23,12 @@ export default function SettingsPage() {
   }, []);
 
   async function handleLogout() {
-    await fetch(`${accountUrl}/api/auth/logout`, { method: "POST", credentials: "include" });
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     setUser(null);
   }
+
+  const ssoCallback = `${siteUrl}/api/auth/sso?return_to=${encodeURIComponent("/settings")}`;
+  const loginUrl = `${accountUrl}/?redirect_uri=${encodeURIComponent(ssoCallback)}`;
 
   return (
     <div className="site-shell">
@@ -69,26 +73,6 @@ export default function SettingsPage() {
               <>
                 <div className="settings-row">
                   <div>
-                    <div className="settings-row-label">표시 이름</div>
-                    <div className="settings-row-value">{user.displayName}</div>
-                  </div>
-                </div>
-                <div className="settings-row">
-                  <div>
-                    <div className="settings-row-label">아이디</div>
-                    <div className="settings-row-value">@{user.username}</div>
-                  </div>
-                </div>
-                {user.email && (
-                  <div className="settings-row">
-                    <div>
-                      <div className="settings-row-label">이메일</div>
-                      <div className="settings-row-value">{user.email}</div>
-                    </div>
-                  </div>
-                )}
-                <div className="settings-row">
-                  <div>
                     <div className="settings-row-label">역할</div>
                     <div className="settings-row-value">{user.role}</div>
                   </div>
@@ -119,7 +103,7 @@ export default function SettingsPage() {
                   <div className="settings-row-label">로그인되어 있지 않습니다</div>
                   <div className="settings-row-sub">로그인하면 계정 정보를 확인할 수 있어요</div>
                 </div>
-                <a href={`${accountUrl}?redirect_uri=${encodeURIComponent(typeof window !== "undefined" ? window.location.origin + "/settings" : "")}`} className="settings-btn">
+                <a href={loginUrl} className="settings-btn">
                   로그인
                   <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m7.5 4.5 5 5-5 5"/></svg>
                 </a>
