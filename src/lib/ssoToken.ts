@@ -9,12 +9,14 @@ interface VerifyResponse {
   userId?: string;
   role?: string;
   remember?: boolean;
+  sessionVersion?: number;
+  authVersion?: number;
 }
 
 export async function verifySSOToken(
   token: string,
   audience: string
-): Promise<{ userId: string; role: string; remember: boolean } | null> {
+): Promise<{ userId: string; role: string; remember: boolean; sessionVersion: number; authVersion: number } | null> {
   try {
     const url = new URL("/api/auth/sso/verify", ACCOUNT_URL);
     let response = await fetch(url, {
@@ -36,6 +38,8 @@ export async function verifySSOToken(
       userId: data.userId,
       role: typeof data.role === "string" ? data.role : "member",
       remember: data.remember === true,
+      sessionVersion: Number.isInteger(data.sessionVersion) ? Number(data.sessionVersion) : -1,
+      authVersion: Number.isInteger(data.authVersion) ? Number(data.authVersion) : -1,
     };
   } catch {
     return null;

@@ -206,7 +206,7 @@ export default function Home() {
 
       <footer>
         <Logo compact />
-        <p>Science × Technology × Imagination</p>
+        <p>science village</p>
         <span>© {new Date().getFullYear()} Scivill. All rights reserved.</span>
       </footer>
 

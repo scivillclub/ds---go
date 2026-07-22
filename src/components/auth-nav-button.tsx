@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-const ACCOUNT_URL = process.env.NEXT_PUBLIC_DSGO_ACCOUNT_URL ?? "https://dsgoaccount.vercel.app";
 type AccountProfile = { displayName?: string; needsLocalCredentials?: boolean };
 
 export function AuthNavButton({ loginHref }: { loginHref: string }) {
@@ -16,11 +15,7 @@ export function AuthNavButton({ loginHref }: { loginHref: string }) {
         const active = !!data?.ok;
         setLoggedIn(active);
         if (!active) return;
-        let response = await fetch(`${ACCOUNT_URL}/api/account/profile`, { credentials: "include", cache: "no-store" });
-        if (response.status === 401) {
-          const refresh = await fetch(`${ACCOUNT_URL}/api/auth/refresh`, { method: "POST", credentials: "include" });
-          if (refresh.ok) response = await fetch(`${ACCOUNT_URL}/api/account/profile`, { credentials: "include", cache: "no-store" });
-        }
+        const response = await fetch("/api/account/profile", { credentials: "include", cache: "no-store" });
         const account = await response.json().catch(() => null);
         if (response.ok) setProfile(account?.profile ?? null);
       })

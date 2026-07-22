@@ -9,6 +9,8 @@ export interface SessionPayload {
   userId: string;
   role: string;
   remember?: boolean;
+  sessionVersion: number;
+  authVersion: number;
 }
 
 function getSecret() {
@@ -19,7 +21,13 @@ function getSecret() {
 export async function createSessionToken(payload: SessionPayload): Promise<string> {
   const remember = payload.remember === true;
   const ttl = remember ? SESSION_TTL_LONG : SESSION_TTL_SHORT;
-  return new SignJWT({ userId: payload.userId, role: payload.role, remember })
+  return new SignJWT({
+    userId: payload.userId,
+    role: payload.role,
+    remember,
+    sessionVersion: payload.sessionVersion,
+    authVersion: payload.authVersion,
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime(`${ttl}s`)
     .setIssuedAt()
@@ -34,6 +42,8 @@ export async function verifySessionToken(token: string): Promise<SessionPayload 
       userId: payload.userId,
       role: typeof payload.role === "string" ? payload.role : "member",
       remember: payload.remember === true,
+      sessionVersion: Number.isInteger(payload.sessionVersion) ? Number(payload.sessionVersion) : -1,
+      authVersion: Number.isInteger(payload.authVersion) ? Number(payload.authVersion) : -1,
     };
   } catch {
     return null;

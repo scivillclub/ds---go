@@ -4,8 +4,6 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-const ACCOUNT_URL = process.env.NEXT_PUBLIC_DSGO_ACCOUNT_URL ?? "https://dsgoaccount.vercel.app";
-
 type Profile = {
   id: string;
   username: string;
@@ -53,19 +51,12 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 async function accountFetch(path: string, init: RequestInit = {}) {
-  const request = () => fetch(`${ACCOUNT_URL}${path}`, {
+  return fetch(path, {
     ...init,
     credentials: "include",
     cache: "no-store",
     headers: { "Content-Type": "application/json", ...(init.headers || {}) },
   });
-  let response = await request();
-  if (response.status !== 401) return response;
-  const refreshed = await fetch(`${ACCOUNT_URL}/api/auth/refresh`, {
-    method: "POST", credentials: "include", cache: "no-store",
-  });
-  if (refreshed.ok) response = await request();
-  return response;
 }
 
 export default function SettingsPage() {
@@ -226,10 +217,7 @@ export default function SettingsPage() {
   }
 
   async function logout() {
-    await Promise.allSettled([
-      fetch("/api/auth/logout", { method: "POST", credentials: "include" }),
-      fetch(`${ACCOUNT_URL}/api/auth/logout`, { method: "POST", credentials: "include" }),
-    ]);
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => null);
     window.location.href = "/";
   }
 
@@ -325,7 +313,7 @@ export default function SettingsPage() {
                 <div className="account-card-title"><div><span>CONNECTIONS</span><h3>연결된 로그인 계정</h3></div><p>한 계정으로 어느 방법이든 안전하게 로그인하세요.</p></div>
                 <div className="connection-row"><div className="connection-logo">B</div><div><strong>Bytenode</strong><p>{profile.hasBytenode ? "연결됨" : "연결되지 않음"}</p></div>
                   {profile.hasBytenode ? <button className="settings-btn settings-btn-ghost" onClick={unlinkBytenode} disabled={saving === "unlink"}>연결 해제</button>
-                    : <a className="settings-btn" href={`${ACCOUNT_URL}/api/account/bytenode/link`}>계정 연결</a>}
+                    : <a className="settings-btn" href="/api/account/bytenode/link">계정 연결</a>}
                 </div>
                 {profile.hasBytenode && !profile.hasPassword && <p className="connection-note">ds-go 비밀번호를 만들기 전에는 계정 잠금을 방지하기 위해 Bytenode 연결을 해제할 수 없습니다.</p>}
               </section>
