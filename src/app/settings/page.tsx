@@ -17,6 +17,15 @@ type Profile = {
   needsLocalCredentials: boolean;
 };
 
+type InboxMessage = {
+  id: string;
+  senderDisplayName: string;
+  subject: string;
+  body: string;
+  createdAt: number;
+  readAt: number | null;
+};
+
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_display_name: "표시 이름은 1~40자로 입력해주세요.",
   invalid_email: "이메일 형식을 확인해주세요.",
@@ -27,6 +36,10 @@ const ERROR_MESSAGES: Record<string, string> = {
   invalid_current_password: "현재 비밀번호가 일치하지 않습니다.",
   local_credentials_required: "ds-go 아이디와 비밀번호를 먼저 만들어주세요.",
   invalid_session: "계정 세션이 만료되었습니다. 다시 로그인해주세요.",
+  report_target_required: "신고할 사람의 아이디나 표시 이름 중 하나 이상을 입력해주세요.",
+  report_target_too_long: "신고 대상 정보가 너무 깁니다.",
+  invalid_report_reason: "신고 사유는 10~2,000자로 입력해주세요.",
+  too_many_reports: "신고 접수 횟수가 많습니다. 잠시 후 다시 시도해주세요.",
 };
 
 async function accountFetch(path: string, init: RequestInit = {}) {
@@ -56,6 +69,11 @@ export default function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [targetUsername, setTargetUsername] = useState("");
+  const [targetDisplayName, setTargetDisplayName] = useState("");
+  const [reportReason, setReportReason] = useState("");
+  const [inbox, setInbox] = useState<InboxMessage[]>([]);
+  const [inboxLoading, setInboxLoading] = useState(true);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -75,13 +93,25 @@ export default function SettingsPage() {
     }
   }, []);
 
+  const loadInbox = useCallback(async () => {
+    setInboxLoading(true);
+    try {
+      const response = await accountFetch("/api/account/inbox");
+      const data = await response.json().catch(() => null);
+      setInbox(response.ok && Array.isArray(data?.messages) ? data.messages : []);
+    } finally {
+      setInboxLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadProfile();
+    loadInbox();
     const status = new URLSearchParams(window.location.search).get("bytenode");
     if (status === "linked") setMessage({ text: "Bytenode 계정이 연결되었습니다." });
     else if (status === "already_linked") setMessage({ text: "해당 Bytenode 계정은 이미 다른 ds-go 계정에 연결되어 있습니다.", error: true });
     else if (status && status !== "linked") setMessage({ text: "Bytenode 계정 연결을 완료하지 못했습니다. 다시 시도해주세요.", error: true });
-  }, [loadProfile]);
+  }, [loadInbox, loadProfile]);
 
   function showResult(data: { error?: string }, fallback: string) {
     if (data.error) setMessage({ text: ERROR_MESSAGES[data.error] || fallback, error: true });
@@ -129,6 +159,32 @@ export default function SettingsPage() {
     setSaving(null);
   }
 
+  async function submitReport(event: FormEvent) {
+    event.preventDefault();
+    setSaving("report"); setMessage(null);
+    const response = await accountFetch("/api/account/reports", {
+      method: "POST",
+      body: JSON.stringify({ targetUsername, targetDisplayName, reason: reportReason }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok) {
+      setTargetUsername(""); setTargetDisplayName(""); setReportReason("");
+      setMessage({ text: "신고가 관리자에게 안전하게 접수되었습니다." });
+    } else showResult(data, "신고를 접수하지 못했습니다.");
+    setSaving(null);
+  }
+
+  async function markMessageRead(id: string) {
+    const current = inbox.find(item => item.id === id);
+    if (!current || current.readAt) return;
+    const response = await accountFetch(`/api/account/inbox/${encodeURIComponent(id)}/read`, {
+      method: "PATCH", body: "{}",
+    });
+    if (response.ok) {
+      setInbox(items => items.map(item => item.id === id ? { ...item, readAt: Date.now() } : item));
+    }
+  }
+
   async function logout() {
     await Promise.allSettled([
       fetch("/api/auth/logout", { method: "POST", credentials: "include" }),
@@ -169,7 +225,7 @@ export default function SettingsPage() {
               <p>@{profile.username}</p>
               <span className="account-role">{profile.role}</span>
               <nav aria-label="설정 항목">
-                <a href="#profile">기본 정보</a><a href="#login">로그인 및 보안</a><a href="#connections">연결된 계정</a><a href="#preferences">개인 설정</a>
+                <a href="#profile">기본 정보</a><a href="#login">로그인 및 보안</a><a href="#connections">연결된 계정</a><a href="#preferences">개인 설정</a><a href="#inbox">받은편지함{inbox.some(item => !item.readAt) ? ` (${inbox.filter(item => !item.readAt).length})` : ""}</a><a href="#report">사용자 신고</a>
               </nav>
             </aside>
 
@@ -218,6 +274,35 @@ export default function SettingsPage() {
               <section id="preferences" className="account-card">
                 <div className="account-card-title"><div><span>PREFERENCES</span><h3>개인 설정</h3></div><p>이 브라우저의 ds-go 화면 설정입니다.</p></div>
                 <div className="preference-row"><div><strong>화면 테마</strong><p>라이트와 다크 모드를 전환합니다.</p></div><ThemeToggle /></div>
+              </section>
+
+              <section id="inbox" className="account-card">
+                <div className="account-card-title"><div><span>INBOX</span><h3>관리자에게 받은 메시지</h3></div><p>관리자가 회원님에게 직접 보낸 안내입니다. 이 편지함에서는 답장할 수 없습니다.</p></div>
+                <div className="account-inbox">
+                  {inboxLoading ? <p className="account-list-empty">메시지를 불러오는 중…</p> : inbox.length === 0 ? <p className="account-list-empty">받은 메시지가 없습니다.</p> : inbox.map(item => (
+                    <details className={`account-mail${item.readAt ? "" : " is-unread"}`} key={item.id} onToggle={event => { if (event.currentTarget.open) markMessageRead(item.id); }}>
+                      <summary>
+                        <span className="account-mail-dot" aria-label={item.readAt ? "읽음" : "읽지 않음"} />
+                        <span><strong>{item.subject}</strong><small>{item.senderDisplayName || "관리자"} · {new Date(item.createdAt).toLocaleString("ko-KR")}</small></span>
+                        <span className="account-mail-state">{item.readAt ? "읽음" : "새 메시지"}</span>
+                      </summary>
+                      <p>{item.body}</p>
+                    </details>
+                  ))}
+                </div>
+              </section>
+
+              <section id="report" className="account-card">
+                <div className="account-card-title"><div><span>REPORT</span><h3>사용자 신고</h3></div><p>아이디 또는 표시 이름 중 하나만 입력해도 접수할 수 있습니다.</p></div>
+                <form onSubmit={submitReport} className="account-form">
+                  <div className="account-form-grid">
+                    <label><span>신고할 사람의 아이디</span><input value={targetUsername} onChange={e => setTargetUsername(e.target.value)} maxLength={40} placeholder="예: user_id" /></label>
+                    <label><span>신고할 사람의 표시 이름</span><input value={targetDisplayName} onChange={e => setTargetDisplayName(e.target.value)} maxLength={40} placeholder="예: 홍길동" /></label>
+                  </div>
+                  <label><span>신고 사유</span><textarea value={reportReason} onChange={e => setReportReason(e.target.value)} minLength={10} maxLength={2000} rows={7} placeholder="어떤 일이 있었는지 구체적으로 적어주세요. 민감한 비밀번호나 인증 코드는 적지 마세요." required /></label>
+                  <small>허위 신고나 반복 신고는 서비스 이용 제한 사유가 될 수 있습니다. 접수 내용은 관리자만 확인합니다.</small>
+                  <button className="settings-btn settings-btn-danger" disabled={saving === "report"}>{saving === "report" ? "접수 중…" : "관리자에게 신고 보내기"}</button>
+                </form>
               </section>
 
               <section className="account-card account-danger-card">
