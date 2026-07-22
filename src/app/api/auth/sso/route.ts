@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
   const sessionToken = await createSessionToken(payload);
   const res = NextResponse.redirect(`${origin}${returnTo}`);
-  res.cookies.set(sessionCookieOptions(sessionToken));
+  res.cookies.set(sessionCookieOptions(sessionToken, payload.remember));
   res.headers.set("Cache-Control", "no-store");
   res.headers.set("Referrer-Policy", "no-referrer");
   return res;

@@ -764,6 +764,11 @@ footer > span:last-child {
 .account-form small { color: var(--muted); font-size: 11px; line-height: 1.55; }
 .account-form .settings-btn { justify-self: start; margin-top: 2px; }
 .settings-btn:disabled { opacity: .5; cursor: wait; }
+.email-verification-status { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.email-status-badge { display: inline-flex; align-items: center; padding: 6px 9px; border: 1px solid rgba(229,62,62,.25); border-radius: 999px; background: rgba(229,62,62,.07); color: #d84b4b; font-size: 10px; font-weight: 850; }
+.email-status-badge.is-verified { border-color: rgba(36,164,102,.3); background: rgba(36,164,102,.08); color: #20a266; }
+.email-code-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; }
+.email-code-row input { letter-spacing: .28em; font-size: 17px; font-weight: 850; }
 .connection-row, .preference-row { display: flex; align-items: center; gap: 13px; padding-top: 20px; }
 .connection-row > div:nth-child(2), .preference-row > div { flex: 1; }
 .connection-row strong, .preference-row strong { font-size: 13px; }
@@ -805,6 +810,10 @@ footer > span:last-child {
   .account-card-title { display: block; }
   .account-card-title > p { margin-top: 8px; text-align: left; }
   .account-form-grid { grid-template-columns: 1fr; }
+  .email-verification-status { align-items: stretch; flex-direction: column; }
+  .email-verification-status .settings-btn { width: 100%; justify-content: center; }
+  .email-code-row { grid-template-columns: 1fr; }
+  .email-code-row .settings-btn { width: 100%; justify-content: center; }
   .account-warning { grid-template-columns: auto 1fr; }
   .account-warning a { grid-column: 2; }
   .connection-row { display: grid; grid-template-columns: auto minmax(0, 1fr); }

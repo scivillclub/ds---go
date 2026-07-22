@@ -11,6 +11,8 @@ type Profile = {
   username: string;
   displayName: string;
   email: string;
+  emailVerified: boolean;
+  emailVerifiedAt: number | null;
   role: string;
   hasPassword: boolean;
   hasBytenode: boolean;
@@ -30,6 +32,14 @@ const ERROR_MESSAGES: Record<string, string> = {
   invalid_display_name: "표시 이름은 1~40자로 입력해주세요.",
   invalid_email: "이메일 형식을 확인해주세요.",
   email_taken: "이미 다른 계정에서 사용하는 이메일입니다.",
+  email_verification_required: "이메일은 인증 코드를 확인한 뒤 변경할 수 있습니다.",
+  email_not_configured: "메일 발송 설정이 완료되지 않았습니다.",
+  email_send_failed: "인증 메일을 보내지 못했습니다. 잠시 후 다시 시도해주세요.",
+  invalid_email_code: "6자리 인증 코드가 올바르지 않습니다.",
+  email_code_expired: "인증 코드가 만료되었습니다. 새 코드를 요청해주세요.",
+  too_many_email_codes: "인증 메일 요청이 너무 많습니다. 10분 후 다시 시도해주세요.",
+  email_code_cooldown: "인증 코드는 1분에 한 번 요청할 수 있습니다.",
+  too_many_email_attempts: "인증 코드 입력 횟수를 초과했습니다. 새 코드를 요청해주세요.",
   weak_password: "새 비밀번호는 8자 이상이며 영문과 숫자를 포함해야 합니다.",
   invalid_username: "아이디는 영문, 숫자, 밑줄로 3~20자여야 합니다.",
   username_taken: "이미 사용 중인 아이디입니다.",
@@ -65,6 +75,8 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
+  const [emailCode, setEmailCode] = useState("");
+  const [emailCodeSent, setEmailCodeSent] = useState(false);
   const [username, setUsername] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -122,12 +134,40 @@ export default function SettingsPage() {
     event.preventDefault();
     setSaving("profile"); setMessage(null);
     const response = await accountFetch("/api/account/profile", {
-      method: "PATCH", body: JSON.stringify({ displayName, email }),
+      method: "PATCH", body: JSON.stringify({ displayName }),
     });
     const data = await response.json().catch(() => ({}));
     if (response.ok) {
       setProfile(data.profile); setMessage({ text: "기본 정보가 저장되었습니다." });
     } else showResult(data, "기본 정보를 저장하지 못했습니다.");
+    setSaving(null);
+  }
+
+  async function sendEmailCode() {
+    setSaving("email-send"); setMessage(null); setEmailCode("");
+    const response = await accountFetch("/api/account/email/send-code", {
+      method: "POST", body: JSON.stringify({ email }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok) {
+      setEmailCodeSent(true);
+      setMessage({ text: `${email}로 6자리 인증 코드를 보냈습니다. 10분 안에 입력해주세요.` });
+    } else showResult(data, "인증 메일을 보내지 못했습니다.");
+    setSaving(null);
+  }
+
+  async function verifyEmailCode(event: FormEvent) {
+    event.preventDefault();
+    setSaving("email-verify"); setMessage(null);
+    const response = await accountFetch("/api/account/email/verify", {
+      method: "POST", body: JSON.stringify({ email, code: emailCode }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok) {
+      setProfile(data.profile); setEmail(data.profile.email);
+      setEmailCode(""); setEmailCodeSent(false);
+      setMessage({ text: "이메일 인증과 변경이 완료되었습니다." });
+    } else showResult(data, "이메일을 인증하지 못했습니다.");
     setSaving(null);
   }
 
@@ -225,7 +265,7 @@ export default function SettingsPage() {
               <p>@{profile.username}</p>
               <span className="account-role">{profile.role}</span>
               <nav aria-label="설정 항목">
-                <a href="#profile">기본 정보</a><a href="#login">로그인 및 보안</a><a href="#connections">연결된 계정</a><a href="#preferences">개인 설정</a><a href="#inbox">받은편지함{inbox.some(item => !item.readAt) ? ` (${inbox.filter(item => !item.readAt).length})` : ""}</a><a href="#report">사용자 신고</a>
+                <a href="#profile">기본 정보</a><a href="#email">이메일 인증</a><a href="#login">로그인 및 보안</a><a href="#connections">연결된 계정</a><a href="#preferences">개인 설정</a><a href="#inbox">받은편지함{inbox.some(item => !item.readAt) ? ` (${inbox.filter(item => !item.readAt).length})` : ""}</a><a href="#report">사용자 신고</a>
               </nav>
             </aside>
 
@@ -243,8 +283,27 @@ export default function SettingsPage() {
                 <div className="account-card-title"><div><span>PROFILE</span><h3>기본 정보</h3></div><p>모든 Scivill 서비스에 표시될 정보입니다.</p></div>
                 <form onSubmit={saveProfile} className="account-form">
                   <label><span>표시 이름</span><input value={displayName} onChange={e => setDisplayName(e.target.value)} maxLength={40} required /></label>
-                  <label><span>이메일</span><input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="name@example.com" /></label>
                   <button className="settings-btn" disabled={saving === "profile"}>{saving === "profile" ? "저장 중…" : "기본 정보 저장"}</button>
+                </form>
+              </section>
+
+              <section id="email" className="account-card">
+                <div className="account-card-title"><div><span>EMAIL</span><h3>이메일 인증</h3></div><p>6자리 일회용 코드를 확인한 이메일만 계정에 저장합니다.</p></div>
+                <form onSubmit={verifyEmailCode} className="account-form">
+                  <label><span>인증할 이메일</span><input type="email" value={email} onChange={e => { setEmail(e.target.value); setEmailCodeSent(false); setEmailCode(""); }} placeholder="name@example.com" required /></label>
+                  <div className="email-verification-status">
+                    <span className={`email-status-badge${profile.emailVerified && email === profile.email ? " is-verified" : ""}`}>
+                      {profile.emailVerified && email === profile.email ? "✓ 인증 완료" : "인증 필요"}
+                    </span>
+                    <button type="button" className="settings-btn settings-btn-ghost" onClick={sendEmailCode} disabled={saving === "email-send" || !email}>
+                      {saving === "email-send" ? "발송 중…" : emailCodeSent ? "인증 코드 다시 보내기" : "6자리 코드 받기"}
+                    </button>
+                  </div>
+                  {emailCodeSent && <div className="email-code-row">
+                    <label><span>인증 코드</span><input value={emailCode} onChange={e => setEmailCode(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} placeholder="000000" required /></label>
+                    <button className="settings-btn" disabled={saving === "email-verify" || emailCode.length !== 6}>{saving === "email-verify" ? "확인 중…" : "이메일 인증"}</button>
+                  </div>}
+                  <small>코드는 10분 동안 한 번만 사용할 수 있으며 5회 잘못 입력하면 폐기됩니다. 스팸함도 확인해주세요.</small>
                 </form>
               </section>
 

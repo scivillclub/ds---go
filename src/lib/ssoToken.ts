@@ -8,12 +8,13 @@ interface VerifyResponse {
   ok?: boolean;
   userId?: string;
   role?: string;
+  remember?: boolean;
 }
 
 export async function verifySSOToken(
   token: string,
   audience: string
-): Promise<{ userId: string; role: string } | null> {
+): Promise<{ userId: string; role: string; remember: boolean } | null> {
   try {
     const url = new URL("/api/auth/sso/verify", ACCOUNT_URL);
     let response = await fetch(url, {
@@ -34,6 +35,7 @@ export async function verifySSOToken(
     return {
       userId: data.userId,
       role: typeof data.role === "string" ? data.role : "member",
+      remember: data.remember === true,
     };
   } catch {
     return null;
