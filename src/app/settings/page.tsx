@@ -6,7 +6,6 @@ import Image from "next/image";
 
 const accountUrl =
   process.env.NEXT_PUBLIC_DSGO_ACCOUNT_URL ?? "https://dsgoaccount.vercel.app";
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dsgo.vercel.app";
 
 type User = { id: string; role: string } | null;
 
@@ -27,8 +26,7 @@ export default function SettingsPage() {
     setUser(null);
   }
 
-  const ssoCallback = `${siteUrl}/api/auth/sso?return_to=${encodeURIComponent("/settings")}`;
-  const loginUrl = `${accountUrl}/?redirect_uri=${encodeURIComponent(ssoCallback)}`;
+  const loginUrl = "/api/auth/login?return_to=%2Fsettings";
 
   return (
     <div className="site-shell">
@@ -90,7 +88,7 @@ export default function SettingsPage() {
                 <div className="settings-row settings-row-action">
                   <div>
                     <div className="settings-row-label">로그아웃</div>
-                    <div className="settings-row-sub">모든 서비스에서 로그아웃됩니다</div>
+                    <div className="settings-row-sub">이 서비스의 로그인 세션을 종료합니다</div>
                   </div>
                   <button onClick={handleLogout} className="settings-btn settings-btn-danger">
                     로그아웃

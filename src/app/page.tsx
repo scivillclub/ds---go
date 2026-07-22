@@ -74,12 +74,8 @@ const services: Array<{
   },
 ];
 
-const accountUrl = process.env.NEXT_PUBLIC_DSGO_ACCOUNT_URL ?? "https://dsgoaccount.vercel.app";
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dsgo.vercel.app";
-
 function loginUrlWithReturn(returnTo: string) {
-  const ssoCallback = `${siteUrl}/api/auth/sso?return_to=${encodeURIComponent(returnTo)}`;
-  return `${accountUrl}/?redirect_uri=${encodeURIComponent(ssoCallback)}`;
+  return `/api/auth/login?return_to=${encodeURIComponent(returnTo)}`;
 }
 
 function Logo({ compact = false }: { compact?: boolean }) {
