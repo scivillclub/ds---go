@@ -541,22 +541,22 @@ footer > span:last-child {
 .footer-legal-logos {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 20px;
 }
 
 .footer-legal-logos img:first-child {
-  height: 28px;
+  height: 72px;
   width: auto;
   object-fit: contain;
-  opacity: 0.35;
+  opacity: 0.72;
   filter: brightness(1.2);
 }
 
 .footer-legal-logos img:last-child {
-  height: 20px;
+  height: 42px;
   width: auto;
   object-fit: contain;
-  opacity: 0.25;
+  opacity: 0.65;
   filter: brightness(1.5) contrast(1.1);
 }
 
@@ -610,6 +610,13 @@ footer > span:last-child {
     justify-items: start;
   }
   footer > span:last-child { justify-self: start; }
+  .footer-legal {
+    width: min(100% - 28px, 1180px);
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .footer-legal nav { gap: 16px; flex-wrap: wrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {
