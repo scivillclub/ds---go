@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -6,6 +6,13 @@ export const metadata: Metadata = {
   description: "Scivill이 만든 서비스를 하나의 계정으로 만나보세요.",
   openGraph: { images: ["https://dsgo.vercel.app/og-image.png"] },
   twitter: { card: "summary_large_image", images: ["https://dsgo.vercel.app/og-image.png"] },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
