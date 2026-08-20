@@ -23,9 +23,11 @@ function isAllowed(method: string, path: string) {
     || (method === "PATCH" && /^\/api\/account\/inbox\/[^/]+\/read$/.test(path));
 }
 
-async function proxy(req: NextRequest, context: { params: { path: string[] } }) {
+async function proxy(req: NextRequest, context: { params: Promise<{ path: string[] }> }) {
+  const { path: pathSegments } = await context.params;
+
   const method = req.method.toUpperCase();
-  const path = `/api/account/${context.params.path.join("/")}`;
+  const path = `/api/account/${pathSegments.join("/")}`;
   if (!isAllowed(method, path)) {
     return NextResponse.json({ ok: false, error: "not_found" }, { status: 404 });
   }
