@@ -16,11 +16,15 @@ const ALLOWED_ROUTES = new Set([
   "POST /api/account/bytenode/unlink",
   "POST /api/account/reports",
   "GET /api/account/inbox",
+  "GET /api/account/oauth/apps",
+  "POST /api/account/oauth/apps",
 ]);
 
 function isAllowed(method: string, path: string) {
   return ALLOWED_ROUTES.has(`${method} ${path}`)
-    || (method === "PATCH" && /^\/api\/account\/inbox\/[^/]+\/read$/.test(path));
+    || (method === "PATCH" && /^\/api\/account\/inbox\/[^/]+\/read$/.test(path))
+    || (["PATCH", "DELETE"].includes(method) && /^\/api\/account\/oauth\/apps\/dsg_[A-Za-z0-9_-]+$/.test(path))
+    || (method === "POST" && /^\/api\/account\/oauth\/apps\/dsg_[A-Za-z0-9_-]+\/secret$/.test(path));
 }
 
 async function proxy(req: NextRequest, context: { params: Promise<{ path: string[] }> }) {
@@ -70,3 +74,4 @@ async function proxy(req: NextRequest, context: { params: Promise<{ path: string
 export const GET = proxy;
 export const POST = proxy;
 export const PATCH = proxy;
+export const DELETE = proxy;

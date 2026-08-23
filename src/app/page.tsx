@@ -114,6 +114,9 @@ export default function Home() {
             <a href="#services" className="services-link">
               서비스
             </a>
+            <a href="/developers" className="services-link">
+              Developers
+            </a>
             <a href="/settings" className="services-link">
               설정
             </a>
