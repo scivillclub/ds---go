@@ -267,19 +267,12 @@ export default function DeveloperPortal() {
       <main className="developer-main">
         <section className="developer-hero">
           <div>
-            <span className="developer-kicker">DS-GO DEVELOPERS · OAUTH 2.0</span>
-            <h1>DS-GO 계정으로<br />당신의 앱을 연결하세요.</h1>
-            <p>표준 Authorization Code 흐름으로 사용자 프로필과 이메일을 안전하게 연결할 수 있습니다.</p>
+            <h1>OAuth 앱</h1>
+            <p>외부 서비스에서 DS-GO 계정으로 로그인할 수 있게 해주는 앱입니다.</p>
           </div>
           <button className="developer-button developer-create-button" onClick={() => setCreating(true)}>
-            <span>＋</span> 새 OAuth 앱
+            <span>＋</span> 새 앱 만들기
           </button>
-        </section>
-
-        <section className="developer-endpoints" aria-label="OAuth 엔드포인트">
-          {endpoints.map(([label, value]) => (
-            <div key={label}><span>{label}</span><code>{value}</code><CopyButton value={value} /></div>
-          ))}
         </section>
 
         {message && <div className={`developer-message${message.error ? " is-error" : ""}`}>{message.text}</div>}
@@ -293,13 +286,16 @@ export default function DeveloperPortal() {
 
         <section className="developer-apps-section">
           <div className="developer-list-title">
-            <div><span>YOUR APPLICATIONS</span><h2>내 OAuth 앱</h2></div>
+            <div><h2>등록된 앱</h2></div>
             <b>{apps.length}</b>
           </div>
           {loading ? <div className="developer-empty">앱 목록을 불러오는 중…</div> : apps.length === 0 ? (
             <div className="developer-empty">
-              <div>⌁</div><h3>아직 등록된 앱이 없습니다.</h3><p>첫 OAuth 앱을 만들고 DS-GO 로그인을 연결해 보세요.</p>
-              <button className="developer-button" onClick={() => setCreating(true)}>첫 앱 만들기</button>
+              <div className="developer-empty-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M14.6 5.4c2.7-2.7 5.9-2.4 5.9-2.4s.3 3.2-2.4 5.9l-4.4 4.4-3.5.6.6-3.5 3.8-5Z" /><path d="m9.9 8.9-3.6-.2-3 3 4.8 1.2M15 13.9l.2 3.6-3 3-1.2-4.8M7.2 16.3c-1.7.3-2.5 1.2-2.8 3 1.8-.3 2.8-1.1 3.1-2.8" /><circle cx="16" cy="7.5" r="1.2" /></svg>
+              </div>
+              <h3>첫 앱을 만들어 보세요</h3>
+              <p>DS-GO OAuth로 사용자 인증을 받을 수 있습니다.</p>
             </div>
           ) : (
             <div className="developer-app-list">
@@ -308,14 +304,27 @@ export default function DeveloperPortal() {
           )}
         </section>
 
-        <section className="developer-guide">
-          <span>QUICK START</span><h2>연결 순서</h2>
-          <ol>
-            <li><b>01</b><div><strong>사용자를 승인 주소로 이동</strong><code>/oauth/authorize?response_type=code&amp;client_id=…&amp;redirect_uri=…&amp;scope=profile%20email&amp;state=…</code></div></li>
-            <li><b>02</b><div><strong>서버에서 code를 access token으로 교환</strong><code>POST /api/oauth/token · grant_type=authorization_code</code></div></li>
-            <li><b>03</b><div><strong>Bearer 토큰으로 사용자 정보 요청</strong><code>GET /api/oauth/userinfo · Authorization: Bearer …</code></div></li>
-          </ol>
-        </section>
+        <details className="developer-reference">
+          <summary>
+            <span><strong>연동 정보</strong><small>OAuth 엔드포인트와 연결 순서</small></span>
+            <i aria-hidden="true">⌄</i>
+          </summary>
+          <div className="developer-reference-body">
+            <section className="developer-endpoints" aria-label="OAuth 엔드포인트">
+              {endpoints.map(([label, value]) => (
+                <div key={label}><span>{label}</span><code>{value}</code><CopyButton value={value} /></div>
+              ))}
+            </section>
+            <section className="developer-guide">
+              <span>QUICK START</span><h2>연결 순서</h2>
+              <ol>
+                <li><b>01</b><div><strong>사용자를 승인 주소로 이동</strong><code>/oauth/authorize?response_type=code&amp;client_id=…&amp;redirect_uri=…&amp;scope=profile%20email&amp;state=…</code></div></li>
+                <li><b>02</b><div><strong>서버에서 code를 access token으로 교환</strong><code>POST /api/oauth/token · grant_type=authorization_code</code></div></li>
+                <li><b>03</b><div><strong>Bearer 토큰으로 사용자 정보 요청</strong><code>GET /api/oauth/userinfo · Authorization: Bearer …</code></div></li>
+              </ol>
+            </section>
+          </div>
+        </details>
       </main>
 
       {secret && (
