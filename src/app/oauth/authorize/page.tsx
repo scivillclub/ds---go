@@ -15,10 +15,11 @@ function first(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] || "" : value || "";
 }
 
-export default async function AuthorizePage({ searchParams }: { searchParams: SearchParams }) {
+export default async function AuthorizePage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const resolvedSearchParams = await searchParams;
   const query = new URLSearchParams();
   for (const field of FIELDS) {
-    const value = first(searchParams[field]);
+    const value = first(resolvedSearchParams[field]);
     if (value) query.set(field, value);
   }
   const returnTo = `/oauth/authorize?${query.toString()}`;
