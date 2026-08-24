@@ -241,13 +241,6 @@ export default function DeveloperPortal() {
     } finally { setBusy(false); }
   }
 
-  const origin = process.env.NEXT_PUBLIC_SITE_URL || "https://dsgo.vercel.app";
-  const endpoints = [
-    ["Authorization", `${origin}/oauth/authorize`],
-    ["Token", `${origin}/api/oauth/token`],
-    ["User info", `${origin}/api/oauth/userinfo`],
-  ];
-
   return (
     <div className="developer-shell">
       <header className="nav-wrap">
@@ -255,9 +248,11 @@ export default function DeveloperPortal() {
           <a href="/" className="developer-logo focus-ring" aria-label="ds-go 홈">
             <Image src="/logo-light.svg" alt="ds-go" width={56} height={43} className="logo-img logo-img-light" priority />
             <Image src="/logo-dark.svg" alt="ds-go" width={56} height={43} className="logo-img logo-img-dark" priority />
+            <span>Developer</span>
           </a>
           <div className="nav-actions">
-            <a href="/developers" className="services-link developer-nav-active">Developers</a>
+            <a href="/developers" className="services-link developer-nav-active">내 앱</a>
+            <a href="/developers/docs" className="services-link">문서</a>
             <a href="/settings" className="services-link">계정 설정</a>
             <ThemeToggle />
           </div>
@@ -304,27 +299,6 @@ export default function DeveloperPortal() {
           )}
         </section>
 
-        <details className="developer-reference">
-          <summary>
-            <span><strong>연동 정보</strong><small>OAuth 엔드포인트와 연결 순서</small></span>
-            <i aria-hidden="true">⌄</i>
-          </summary>
-          <div className="developer-reference-body">
-            <section className="developer-endpoints" aria-label="OAuth 엔드포인트">
-              {endpoints.map(([label, value]) => (
-                <div key={label}><span>{label}</span><code>{value}</code><CopyButton value={value} /></div>
-              ))}
-            </section>
-            <section className="developer-guide">
-              <span>QUICK START</span><h2>연결 순서</h2>
-              <ol>
-                <li><b>01</b><div><strong>사용자를 승인 주소로 이동</strong><code>/oauth/authorize?response_type=code&amp;client_id=…&amp;redirect_uri=…&amp;scope=profile%20email&amp;state=…</code></div></li>
-                <li><b>02</b><div><strong>서버에서 code를 access token으로 교환</strong><code>POST /api/oauth/token · grant_type=authorization_code</code></div></li>
-                <li><b>03</b><div><strong>Bearer 토큰으로 사용자 정보 요청</strong><code>GET /api/oauth/userinfo · Authorization: Bearer …</code></div></li>
-              </ol>
-            </section>
-          </div>
-        </details>
       </main>
 
       {secret && (
