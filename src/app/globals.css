@@ -994,8 +994,8 @@ footer > span:last-child {
 .oauth-consent-shell { display: grid; min-height: 100vh; padding: 40px 20px; place-items: center; background: radial-gradient(circle at 50% 15%, rgba(101, 88, 245, .14), transparent 25rem), var(--background); }
 .oauth-consent-card, .oauth-error-card { width: min(480px, 100%); padding: 31px; border: 1px solid var(--line); border-radius: 24px; background: var(--surface); box-shadow: 0 28px 90px rgba(20, 18, 55, .12); text-align: center; }
 .oauth-consent-card { font-family: ui-rounded, "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
-.oauth-brand { display: inline-flex; margin-bottom: 25px; }
-.oauth-consent-card > span, .oauth-error-card > span { color: var(--brand); font-size: 10px; font-weight: 850; letter-spacing: .14em; }
+.oauth-brand { display: flex; width: fit-content; margin: 0 auto 12px; }
+.oauth-consent-card > span, .oauth-error-card > span { display: block; color: var(--brand); font-size: 10px; font-weight: 850; letter-spacing: .14em; }
 .oauth-consent-card h1, .oauth-error-card h1 { margin: 9px 0 0; font-size: clamp(24px, 5.2vw, 30px); font-weight: 720; line-height: 1.34; letter-spacing: -.035em; word-break: keep-all; }
 .oauth-app-description { margin: 11px auto 0; max-width: 370px; color: var(--muted); font-size: 12px; line-height: 1.6; }
 .oauth-user-pill { display: flex; margin-top: 23px; padding: 12px; align-items: center; gap: 11px; border: 1px solid var(--line); border-radius: 13px; background: var(--surface-soft); text-align: left; }
