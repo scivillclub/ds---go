@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
 export const SESSION_COOKIE = "dsgo_session";
+export const LOGGED_OUT_COOKIE = "dsgo_logged_out";
 export const SESSION_TTL_SHORT = 24 * 60 * 60;
 export const SESSION_TTL_LONG = 30 * 24 * 60 * 60;
 

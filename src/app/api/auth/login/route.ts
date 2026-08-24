@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { LOGGED_OUT_COOKIE } from "@/lib/session";
 
 const ACCOUNT_URL =
   process.env.DSGO_ACCOUNT_URL ||
@@ -22,7 +23,8 @@ export function GET(req: NextRequest) {
 
   const loginUrl = new URL("/", ACCOUNT_URL);
   loginUrl.searchParams.set("redirect_uri", callback.toString());
-  if (req.nextUrl.searchParams.get("prompt") === "login") {
+  const forceLogin = req.nextUrl.searchParams.get("prompt") === "login" || req.cookies.get(LOGGED_OUT_COOKIE)?.value === "1";
+  if (forceLogin) {
     loginUrl.searchParams.set("prompt", "login");
   }
   return NextResponse.redirect(loginUrl);

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { SESSION_COOKIE } from "@/lib/session";
+import { LOGGED_OUT_COOKIE, SESSION_COOKIE } from "@/lib/session";
 
 export async function POST() {
   const res = NextResponse.json({ ok: true });
@@ -11,6 +11,15 @@ export async function POST() {
     sameSite: "lax",
     path: "/",
     expires: new Date(0),
+  });
+  res.cookies.set({
+    name: LOGGED_OUT_COOKIE,
+    value: "1",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 365 * 24 * 60 * 60,
   });
   return res;
 }

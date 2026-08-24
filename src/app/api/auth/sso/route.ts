@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySSOToken } from "@/lib/ssoToken";
-import { createSessionToken, sessionCookieOptions } from "@/lib/session";
+import { createSessionToken, LOGGED_OUT_COOKIE, sessionCookieOptions } from "@/lib/session";
 
 function safeReturnTo(path: string | null): string {
   if (!path) return "/";
@@ -26,6 +26,15 @@ export async function GET(req: NextRequest) {
   const sessionToken = await createSessionToken(payload);
   const res = NextResponse.redirect(`${origin}${returnTo}`);
   res.cookies.set(sessionCookieOptions(sessionToken, payload.remember));
+  res.cookies.set({
+    name: LOGGED_OUT_COOKIE,
+    value: "",
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    expires: new Date(0),
+  });
   res.headers.set("Cache-Control", "no-store");
   res.headers.set("Referrer-Policy", "no-referrer");
   return res;
