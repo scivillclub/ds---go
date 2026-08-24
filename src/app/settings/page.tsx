@@ -2,6 +2,7 @@
 
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 type Profile = {
@@ -43,6 +44,9 @@ const ERROR_MESSAGES: Record<string, string> = {
   username_taken: "이미 사용 중인 아이디입니다.",
   invalid_current_password: "현재 비밀번호가 일치하지 않습니다.",
   local_credentials_required: "ds-go 아이디와 비밀번호를 먼저 만들어주세요.",
+  invalid_delete_credentials: "아이디 또는 비밀번호가 일치하지 않습니다.",
+  invalid_delete_confirmation: "확인란에 scivill을 정확히 입력해주세요.",
+  account_changed: "계정 정보가 변경되었습니다. 내용을 다시 확인해주세요.",
   invalid_session: "계정 세션이 만료되었습니다. 다시 로그인해주세요.",
   report_target_required: "신고할 사람의 아이디나 표시 이름 중 하나 이상을 입력해주세요.",
   report_target_too_long: "신고 대상 정보가 너무 깁니다.",
@@ -60,6 +64,7 @@ async function accountFetch(path: string, init: RequestInit = {}) {
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
@@ -77,6 +82,9 @@ export default function SettingsPage() {
   const [reportReason, setReportReason] = useState("");
   const [inbox, setInbox] = useState<InboxMessage[]>([]);
   const [inboxLoading, setInboxLoading] = useState(true);
+  const [deleteUsername, setDeleteUsername] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -218,7 +226,30 @@ export default function SettingsPage() {
 
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => null);
-    window.location.href = "/";
+    router.replace("/");
+    router.refresh();
+  }
+
+  async function deleteAccount(event: FormEvent) {
+    event.preventDefault();
+    if (deleteConfirmation !== "scivill") {
+      setMessage({ text: ERROR_MESSAGES.invalid_delete_confirmation, error: true });
+      return;
+    }
+    setSaving("delete-account"); setMessage(null);
+    const response = await accountFetch("/api/account/profile", {
+      method: "DELETE",
+      body: JSON.stringify({ username: deleteUsername, password: deletePassword, confirmation: deleteConfirmation }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok) {
+      await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => null);
+      router.replace("/");
+      router.refresh();
+      return;
+    }
+    showResult(data, "회원탈퇴를 처리하지 못했습니다.");
+    setSaving(null);
   }
 
   const initial = profile?.displayName?.trim().charAt(0).toUpperCase() || "D";
@@ -355,6 +386,23 @@ export default function SettingsPage() {
               <section className="account-card account-danger-card">
                 <div className="account-card-title"><div><span>SESSION</span><h3>현재 브라우저에서 로그아웃</h3></div><p>dsgo와 중앙 계정의 현재 로그인 세션을 종료합니다.</p></div>
                 <button className="settings-btn settings-btn-danger" onClick={logout}>로그아웃</button>
+              </section>
+
+              <section id="delete-account" className="account-card account-delete-card">
+                <div className="account-card-title"><div><span>DANGER ZONE</span><h3>회원탈퇴</h3></div><p>계정과 OAuth 앱, 발급 토큰 및 개인 계정 자료를 영구적으로 삭제합니다.</p></div>
+                {profile.hasPassword ? (
+                  <form onSubmit={deleteAccount} className="account-form">
+                    <div className="account-form-grid">
+                      <label><span>ds-go 아이디 재입력</span><input value={deleteUsername} onChange={event => setDeleteUsername(event.target.value)} autoComplete="username" required /></label>
+                      <label><span>현재 비밀번호 재입력</span><input type="password" value={deletePassword} onChange={event => setDeletePassword(event.target.value)} autoComplete="current-password" required /></label>
+                    </div>
+                    <label><span>확인을 위해 scivill 입력</span><input value={deleteConfirmation} onChange={event => setDeleteConfirmation(event.target.value)} autoComplete="off" spellCheck={false} placeholder="scivill" required /></label>
+                    <small>탈퇴 후 계정과 OAuth 연결은 복구할 수 없습니다. 세 항목은 서버에서도 다시 검증됩니다.</small>
+                    <button className="settings-btn settings-btn-danger" disabled={saving === "delete-account" || !deleteUsername || !deletePassword || deleteConfirmation !== "scivill"}>{saving === "delete-account" ? "탈퇴 처리 중…" : "회원탈퇴"}</button>
+                  </form>
+                ) : (
+                  <p className="account-delete-note">회원탈퇴 전 위의 로그인 및 보안 항목에서 ds-go 아이디와 비밀번호를 먼저 만들어주세요.</p>
+                )}
               </section>
             </div>
           </div>

@@ -10,6 +10,7 @@ const ACCOUNT_URL =
 const ALLOWED_ROUTES = new Set([
   "GET /api/account/profile",
   "PATCH /api/account/profile",
+  "DELETE /api/account/profile",
   "POST /api/account/email/send-code",
   "POST /api/account/email/verify",
   "POST /api/account/local-credentials",
