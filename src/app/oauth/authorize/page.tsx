@@ -60,12 +60,17 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
     profile: { title: "기본 프로필", description: "사용자 ID, 표시 이름, 아이디" },
     email: { title: "이메일 주소", description: "이메일 주소와 인증 여부" },
   };
+  const isScivillApp = /scivill/i.test(data.app.name);
 
   return (
     <main className="oauth-consent-shell">
       <section className="oauth-consent-card">
         <div className="oauth-brand"><Image src="/logo-light.svg" alt="ds-go" width={66} height={51} className="logo-img logo-img-light" /><Image src="/logo-dark.svg" alt="ds-go" width={66} height={51} className="logo-img logo-img-dark" /></div>
-        <div className="oauth-app-mark">{data.app.name.slice(0, 1).toUpperCase()}</div>
+        {isScivillApp && (
+          <div className="oauth-client-logo">
+            <Image src="/scivill-emblem.png" alt="SCIVILL" width={118} height={118} />
+          </div>
+        )}
         <span>DS-GO 계정으로 계속</span>
         <h1>{data.app.name}에서<br />계정 연결을 요청합니다.</h1>
         {data.app.description && <p className="oauth-app-description">{data.app.description}</p>}
