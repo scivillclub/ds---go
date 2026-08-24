@@ -992,13 +992,6 @@ footer > span:last-child {
 .oauth-consent-card, .oauth-error-card { width: min(480px, 100%); padding: 31px; border: 1px solid var(--line); border-radius: 24px; background: var(--surface); box-shadow: 0 28px 90px rgba(20, 18, 55, .12); text-align: center; }
 .oauth-consent-card { font-family: ui-rounded, "Pretendard", "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
 .oauth-brand { display: inline-flex; margin-bottom: 25px; }
-.oauth-consent-card .oauth-brand { margin-bottom: 13px; }
-.oauth-client-logo { width: 118px; height: 58px; margin: 0 auto 15px; overflow: hidden; }
-.oauth-client-logo img { display: block; width: 118px; height: 118px; transform: translateY(-30px); filter: invert(1); mix-blend-mode: multiply; }
-:root[data-theme="dark"] .oauth-client-logo img { filter: none; mix-blend-mode: screen; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .oauth-client-logo img { filter: none; mix-blend-mode: screen; }
-}
 .oauth-consent-card > span, .oauth-error-card > span { color: var(--brand); font-size: 10px; font-weight: 850; letter-spacing: .14em; }
 .oauth-consent-card h1, .oauth-error-card h1 { margin: 9px 0 0; font-size: clamp(24px, 5.2vw, 30px); font-weight: 720; line-height: 1.34; letter-spacing: -.035em; word-break: keep-all; }
 .oauth-app-description { margin: 11px auto 0; max-width: 370px; color: var(--muted); font-size: 12px; line-height: 1.6; }
@@ -1014,9 +1007,11 @@ footer > span:last-child {
 .oauth-permissions p { display: grid; margin: 0; gap: 3px; }
 .oauth-permissions strong { font-size: 12px; }
 .oauth-permissions small { color: var(--muted); font-size: 10px; }
-.oauth-consent-card form { display: grid; margin-top: 20px; grid-template-columns: 1fr 1fr; gap: 8px; }
-.oauth-consent-card form button { min-height: 45px; border-radius: 11px; font: inherit; font-size: 12px; font-weight: 850; cursor: pointer; }
+.oauth-consent-card form { display: grid; margin-top: 20px; grid-template-columns: 1fr 1.35fr 1fr; gap: 8px; }
+.oauth-consent-card form button, .oauth-switch-account { display: grid; min-height: 45px; padding: 0 9px; place-items: center; border-radius: 11px; font: inherit; font-size: 11px; font-weight: 850; line-height: 1.25; cursor: pointer; }
 .oauth-deny { border: 1px solid var(--line); background: var(--surface-soft); color: var(--foreground); }
+.oauth-switch-account { border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--line)); background: color-mix(in srgb, var(--brand) 8%, var(--surface-soft)); color: var(--brand); }
+.oauth-switch-account:hover { background: color-mix(in srgb, var(--brand) 13%, var(--surface-soft)); }
 .oauth-allow { border: 0; background: var(--foreground); color: var(--background); }
 .oauth-notice { margin: 17px 4px 0; color: var(--muted); font-size: 9px; line-height: 1.6; }
 .oauth-error-card > p { margin: 13px 0; color: var(--muted); font-size: 12px; line-height: 1.65; }

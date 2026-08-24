@@ -22,5 +22,8 @@ export function GET(req: NextRequest) {
 
   const loginUrl = new URL("/", ACCOUNT_URL);
   loginUrl.searchParams.set("redirect_uri", callback.toString());
+  if (req.nextUrl.searchParams.get("prompt") === "login") {
+    loginUrl.searchParams.set("prompt", "login");
+  }
   return NextResponse.redirect(loginUrl);
 }

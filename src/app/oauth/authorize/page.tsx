@@ -23,6 +23,7 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
     if (value) query.set(field, value);
   }
   const returnTo = `/oauth/authorize?${query.toString()}`;
+  const switchAccountHref = `/api/auth/login?return_to=${encodeURIComponent(returnTo)}&prompt=login`;
   const session = await getSession();
   if (!session) redirect(`/api/auth/login?return_to=${encodeURIComponent(returnTo)}`);
 
@@ -60,17 +61,11 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
     profile: { title: "기본 프로필", description: "사용자 ID, 표시 이름, 아이디" },
     email: { title: "이메일 주소", description: "이메일 주소와 인증 여부" },
   };
-  const isScivillApp = /scivill/i.test(data.app.name);
 
   return (
     <main className="oauth-consent-shell">
       <section className="oauth-consent-card">
         <div className="oauth-brand"><Image src="/logo-light.svg" alt="ds-go" width={66} height={51} className="logo-img logo-img-light" /><Image src="/logo-dark.svg" alt="ds-go" width={66} height={51} className="logo-img logo-img-dark" /></div>
-        {isScivillApp && (
-          <div className="oauth-client-logo">
-            <Image src="/scivill-emblem.png" alt="SCIVILL" width={118} height={118} />
-          </div>
-        )}
         <span>DS-GO 계정으로 계속</span>
         <h1>{data.app.name}에서<br />계정 연결을 요청합니다.</h1>
         {data.app.description && <p className="oauth-app-description">{data.app.description}</p>}
@@ -84,6 +79,7 @@ export default async function AuthorizePage({ searchParams }: { searchParams: Pr
         <form method="post" action="/api/oauth/authorize">
           {FIELDS.map((field) => <input key={field} type="hidden" name={field} value={query.get(field) || ""} />)}
           <button type="submit" name="decision" value="deny" className="oauth-deny">취소</button>
+          <a className="oauth-switch-account" href={switchAccountHref}>다른 계정으로 계속</a>
           <button type="submit" name="decision" value="allow" className="oauth-allow">계속</button>
         </form>
         <p className="oauth-notice">계속하면 {data.app.name}의 서비스 약관과 개인정보 처리방침이 적용됩니다. DS-GO 비밀번호는 앱에 공유되지 않습니다.</p>
