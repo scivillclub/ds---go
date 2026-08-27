@@ -122,9 +122,9 @@ export default function SettingsPage() {
     const params = new URLSearchParams(window.location.search);
     const bytenodeStatus = params.get("bytenode");
     const oryaStatus = params.get("orya");
-    if (oryaStatus === "linked") setMessage({ text: "Orya 계정이 연결되었습니다." });
-    else if (oryaStatus === "already_linked") setMessage({ text: "해당 Orya 계정은 이미 다른 ds-go 계정에 연결되어 있습니다.", error: true });
-    else if (oryaStatus) setMessage({ text: "Orya 계정 연결을 완료하지 못했습니다. 다시 시도해주세요.", error: true });
+    if (oryaStatus === "linked") setMessage({ text: "오량인 계정이 연결되었습니다." });
+    else if (oryaStatus === "already_linked") setMessage({ text: "해당 오량인 계정은 이미 다른 ds-go 계정에 연결되어 있습니다.", error: true });
+    else if (oryaStatus) setMessage({ text: "오량인 계정 연결을 완료하지 못했습니다. 다시 시도해주세요.", error: true });
     else if (bytenodeStatus === "linked") setMessage({ text: "Bytenode 계정이 연결되었습니다." });
     else if (bytenodeStatus === "already_linked") setMessage({ text: "해당 Bytenode 계정은 이미 다른 ds-go 계정에 연결되어 있습니다.", error: true });
     else if (bytenodeStatus) setMessage({ text: "Bytenode 계정 연결을 완료하지 못했습니다. 다시 시도해주세요.", error: true });
@@ -205,11 +205,11 @@ export default function SettingsPage() {
   }
 
   async function unlinkOrya() {
-    if (!window.confirm("Orya 계정 연결을 해제할까요? 다른 연결 계정이나 ds-go 아이디·비밀번호로는 계속 로그인할 수 있습니다.")) return;
+    if (!window.confirm("오량인 계정 연결을 해제할까요? 다른 연결 계정이나 ds-go 아이디·비밀번호로는 계속 로그인할 수 있습니다.")) return;
     setSaving("unlink-orya"); setMessage(null);
     const response = await accountFetch("/api/account/orya/unlink", { method: "POST", body: "{}" });
     const data = await response.json().catch(() => ({}));
-    if (response.ok) { setProfile(data.profile); setMessage({ text: "Orya 연결을 해제했습니다." }); }
+    if (response.ok) { setProfile(data.profile); setMessage({ text: "오량인 연결을 해제했습니다." }); }
     else showResult(data, "연결을 해제하지 못했습니다.");
     setSaving(null);
   }
@@ -362,12 +362,12 @@ export default function SettingsPage() {
                   {profile.hasBytenode ? <button className="settings-btn settings-btn-ghost" onClick={unlinkBytenode} disabled={saving === "unlink-bytenode"}>연결 해제</button>
                     : <a className="settings-btn" href="/api/account/bytenode/link">계정 연결</a>}
                 </div>
-                <div className="connection-row"><div className="connection-logo"><Image src="/orya-logo.png" alt="Orya" width={28} height={28} /></div><div><strong>Orya</strong><p>{profile.hasOrya ? "연결됨" : "연결되지 않음"}</p></div>
+                <div className="connection-row"><div className="connection-logo"><Image src="/orya-logo.png" alt="오량인" width={28} height={28} /></div><div><strong>오량인</strong><p>{profile.hasOrya ? "연결됨" : "연결되지 않음"}</p></div>
                   {profile.hasOrya ? <button className="settings-btn settings-btn-ghost" onClick={unlinkOrya} disabled={saving === "unlink-orya"}>연결 해제</button>
                     : <a className="settings-btn" href="/api/account/orya/link">계정 연결</a>}
                 </div>
                 {profile.hasBytenode && !profile.hasPassword && !profile.hasOrya && <p className="connection-note">다른 로그인 방법을 연결하거나 ds-go 비밀번호를 만들기 전에는 계정 잠금을 방지하기 위해 Bytenode 연결을 해제할 수 없습니다.</p>}
-                {profile.hasOrya && !profile.hasPassword && !profile.hasBytenode && <p className="connection-note">다른 로그인 방법을 연결하거나 ds-go 비밀번호를 만들기 전에는 계정 잠금을 방지하기 위해 Orya 연결을 해제할 수 없습니다.</p>}
+                {profile.hasOrya && !profile.hasPassword && !profile.hasBytenode && <p className="connection-note">다른 로그인 방법을 연결하거나 ds-go 비밀번호를 만들기 전에는 계정 잠금을 방지하기 위해 오량인 연결을 해제할 수 없습니다.</p>}
               </section>
 
               <section id="preferences" className="account-card">
