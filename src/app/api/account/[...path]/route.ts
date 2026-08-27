@@ -15,6 +15,7 @@ const ALLOWED_ROUTES = new Set([
   "POST /api/account/email/verify",
   "POST /api/account/local-credentials",
   "POST /api/account/bytenode/unlink",
+  "POST /api/account/orya/unlink",
   "POST /api/account/reports",
   "GET /api/account/inbox",
   "GET /api/account/oauth/apps",
