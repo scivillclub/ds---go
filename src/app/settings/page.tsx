@@ -86,6 +86,8 @@ const ERROR_MESSAGES: Record<string, string> = {
   too_many_reports: "신고 접수 횟수가 많습니다. 잠시 후 다시 시도해주세요.",
 };
 
+const ACCOUNT_URL = process.env.NEXT_PUBLIC_DSGO_ACCOUNT_URL || "https://dsgoaccount.vercel.app";
+
 async function accountFetch(path: string, init: RequestInit = {}) {
   return fetch(path, {
     ...init,
@@ -307,10 +309,16 @@ export default function SettingsPage() {
     }
   }
 
-  async function logout() {
+  // ds-go 세션만 끊으면 중앙 계정 쿠키가 남아 다음 로그인 화면에서 곧바로
+  // SSO로 다시 들어온다. 서드파티 쿠키를 막는 브라우저에서도 확실하도록
+  // fetch가 아니라 최상위 이동으로 중앙 세션까지 종료한다.
+  async function endAllSessions() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => null);
-    router.replace("/");
-    router.refresh();
+    window.location.href = `${ACCOUNT_URL}/api/auth/logout?redirect_uri=${encodeURIComponent(window.location.origin)}`;
+  }
+
+  async function logout() {
+    await endAllSessions();
   }
 
   async function deleteAccount(event: FormEvent) {
@@ -326,9 +334,7 @@ export default function SettingsPage() {
     });
     const data = await response.json().catch(() => ({}));
     if (response.ok) {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => null);
-      router.replace("/");
-      router.refresh();
+      await endAllSessions();
       return;
     }
     showResult(data, "회원탈퇴를 처리하지 못했습니다.");
@@ -493,7 +499,7 @@ export default function SettingsPage() {
               </section>
 
               <section className="account-card account-danger-card">
-                <div className="account-card-title"><div><span>SESSION</span><h3>현재 브라우저에서 로그아웃</h3></div><p>dsgo와 중앙 계정의 현재 로그인 세션을 종료합니다.</p></div>
+                <div className="account-card-title"><div><span>SESSION</span><h3>현재 브라우저에서 로그아웃</h3></div><p>ds-go와 중앙 계정의 로그인 세션을 함께 종료하고 로그인 화면으로 돌아갑니다.</p></div>
                 <button className="settings-btn settings-btn-danger" onClick={logout}>로그아웃</button>
               </section>
 
