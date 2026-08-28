@@ -803,8 +803,6 @@ footer > span:last-child {
 .connection-provider-list { display: grid; gap: 10px; margin-top: 20px; }
 .connection-provider { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 16px; border: 1px solid var(--line); border-radius: 15px; background: var(--surface); }
 .connection-provider.is-connected { border-color: rgba(36, 164, 102, .35); background: color-mix(in srgb, rgba(36, 164, 102, .06) 55%, var(--surface)); }
-.connection-provider.is-pending { opacity: .72; }
-.connection-provider.is-pending .settings-btn:disabled { cursor: not-allowed; }
 .connection-provider-logo { display: grid; place-items: center; width: 48px; height: 48px; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: #fff; }
 .connection-provider-logo-wide img { width: 43px; height: auto; object-fit: contain; }
 .connection-provider-copy { min-width: 0; }

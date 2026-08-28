@@ -378,7 +378,6 @@ export default function SettingsPage() {
                   <div className="connection-summary-logos" aria-hidden="true">
                     <span className={profile.hasBytenode ? "is-connected" : ""}><Image src="/bytenode-studio-logo.png" alt="" width={38} height={19} /></span>
                     <span className={profile.hasOrya ? "is-connected" : ""}><Image src="/orya-logo.png" alt="" width={30} height={30} /></span>
-                    <span><Image src="/superschool-logo.svg" alt="" width={30} height={30} /></span>
                   </div>
                   <div><strong>외부 계정 {[profile.hasBytenode, profile.hasOrya].filter(Boolean).length}개 연결됨</strong><p>연결된 로그인 수단은 모두 현재 DS-GO 계정으로 들어옵니다.</p></div>
                   <button type="button" className="settings-btn" aria-haspopup="dialog" onClick={() => setConnectionsOpen(true)}>계정 연동 관리</button>
@@ -473,11 +472,6 @@ export default function SettingsPage() {
                 ) : <a className="settings-btn" href="/api/account/orya/link">계정 연결</a>}
               </article>
 
-              <article className="connection-provider is-pending">
-                <div className="connection-provider-logo"><Image src="/superschool-logo.svg" alt="슈퍼스쿨" width={38} height={38} /></div>
-                <div className="connection-provider-copy"><div><h3>슈퍼스쿨</h3><span>공식 연동 준비 중</span></div><p>공식 OAuth 또는 승인된 계정 연동 API가 제공되면 연결할 수 있습니다. DS-GO는 슈퍼스쿨 비밀번호를 직접 받지 않습니다.</p></div>
-                <button type="button" className="settings-btn settings-btn-ghost" disabled>준비 중</button>
-              </article>
             </div>
 
             {profile.hasBytenode && !profile.hasPassword && !profile.hasOrya && <p className="connection-note">Bytenode가 현재 유일한 로그인 수단입니다. 오량인을 연결하거나 ds-go 비밀번호를 만든 뒤 해제할 수 있습니다.</p>}
