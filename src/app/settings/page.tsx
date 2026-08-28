@@ -86,6 +86,7 @@ export default function SettingsPage() {
   const [deleteUsername, setDeleteUsername] = useState("");
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [connectionsOpen, setConnectionsOpen] = useState(false);
 
   const loadProfile = useCallback(async () => {
     setLoading(true);
@@ -122,6 +123,7 @@ export default function SettingsPage() {
     const params = new URLSearchParams(window.location.search);
     const bytenodeStatus = params.get("bytenode");
     const oryaStatus = params.get("orya");
+    if (bytenodeStatus || oryaStatus) setConnectionsOpen(true);
     if (oryaStatus === "linked") setMessage({ text: "오량인 계정이 연결되었습니다." });
     else if (oryaStatus === "already_linked") setMessage({ text: "해당 오량인 계정은 이미 다른 ds-go 계정에 연결되어 있습니다.", error: true });
     else if (oryaStatus) setMessage({ text: "오량인 계정 연결을 완료하지 못했습니다. 다시 시도해주세요.", error: true });
@@ -129,6 +131,20 @@ export default function SettingsPage() {
     else if (bytenodeStatus === "already_linked") setMessage({ text: "해당 Bytenode 계정은 이미 다른 ds-go 계정에 연결되어 있습니다.", error: true });
     else if (bytenodeStatus) setMessage({ text: "Bytenode 계정 연결을 완료하지 못했습니다. 다시 시도해주세요.", error: true });
   }, [loadInbox, loadProfile]);
+
+  useEffect(() => {
+    if (!connectionsOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setConnectionsOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [connectionsOpen]);
 
   function showResult(data: { error?: string }, fallback: string) {
     if (data.error) setMessage({ text: ERROR_MESSAGES[data.error] || fallback, error: true });
@@ -358,16 +374,15 @@ export default function SettingsPage() {
 
               <section id="connections" className="account-card">
                 <div className="account-card-title"><div><span>CONNECTIONS</span><h3>연결된 로그인 계정</h3></div><p>한 계정으로 어느 방법이든 안전하게 로그인하세요.</p></div>
-                <div className="connection-row"><div className="connection-logo">B</div><div><strong>Bytenode</strong><p>{profile.hasBytenode ? "연결됨" : "연결되지 않음"}</p></div>
-                  {profile.hasBytenode ? <button className="settings-btn settings-btn-ghost" onClick={unlinkBytenode} disabled={saving === "unlink-bytenode"}>연결 해제</button>
-                    : <a className="settings-btn" href="/api/account/bytenode/link">계정 연결</a>}
+                <div className="connection-summary">
+                  <div className="connection-summary-logos" aria-hidden="true">
+                    <span className={profile.hasBytenode ? "is-connected" : ""}><Image src="/bytenode-studio-logo.png" alt="" width={38} height={19} /></span>
+                    <span className={profile.hasOrya ? "is-connected" : ""}><Image src="/orya-logo.png" alt="" width={30} height={30} /></span>
+                    <span><Image src="/superschool-logo.svg" alt="" width={30} height={30} /></span>
+                  </div>
+                  <div><strong>외부 계정 {[profile.hasBytenode, profile.hasOrya].filter(Boolean).length}개 연결됨</strong><p>연결된 로그인 수단은 모두 현재 DS-GO 계정으로 들어옵니다.</p></div>
+                  <button type="button" className="settings-btn" aria-haspopup="dialog" onClick={() => setConnectionsOpen(true)}>계정 연동 관리</button>
                 </div>
-                <div className="connection-row"><div className="connection-logo"><Image src="/orya-logo.png" alt="오량인" width={28} height={28} /></div><div><strong>오량인</strong><p>{profile.hasOrya ? "연결됨" : "연결되지 않음"}</p></div>
-                  {profile.hasOrya ? <button className="settings-btn settings-btn-ghost" onClick={unlinkOrya} disabled={saving === "unlink-orya"}>연결 해제</button>
-                    : <a className="settings-btn" href="/api/account/orya/link">계정 연결</a>}
-                </div>
-                {profile.hasBytenode && !profile.hasPassword && !profile.hasOrya && <p className="connection-note">다른 로그인 방법을 연결하거나 ds-go 비밀번호를 만들기 전에는 계정 잠금을 방지하기 위해 Bytenode 연결을 해제할 수 없습니다.</p>}
-                {profile.hasOrya && !profile.hasPassword && !profile.hasBytenode && <p className="connection-note">다른 로그인 방법을 연결하거나 ds-go 비밀번호를 만들기 전에는 계정 잠금을 방지하기 위해 오량인 연결을 해제할 수 없습니다.</p>}
               </section>
 
               <section id="preferences" className="account-card">
@@ -429,6 +444,48 @@ export default function SettingsPage() {
           </div>
         )}
       </main>
+      {profile && connectionsOpen && (
+        <div className="connection-modal-backdrop" role="presentation" onMouseDown={event => {
+          if (event.target === event.currentTarget) setConnectionsOpen(false);
+        }}>
+          <section className="connection-modal" role="dialog" aria-modal="true" aria-labelledby="connection-modal-title">
+            <header className="connection-modal-header">
+              <div><span>CONNECTED ACCOUNTS</span><h2 id="connection-modal-title">계정 연동 관리</h2></div>
+              <button type="button" className="connection-modal-close" aria-label="계정 연동 관리 창 닫기" autoFocus onClick={() => setConnectionsOpen(false)}>×</button>
+            </header>
+            <p className="connection-modal-intro"><strong>{profile.displayName}</strong>님의 DS-GO 계정에 로그인 수단을 추가합니다. 연동한 뒤에는 아래 계정 중 어느 것으로 로그인해도 동일한 사용자 ID <code>{profile.id}</code>로 접속합니다.</p>
+            {message && <div className={`account-message connection-modal-message${message.error ? " is-error" : ""}`}>{message.text}</div>}
+
+            <div className="connection-provider-list">
+              <article className={`connection-provider${profile.hasBytenode ? " is-connected" : ""}`}>
+                <div className="connection-provider-logo connection-provider-logo-wide"><Image src="/bytenode-studio-logo.png" alt="Bytenode Studio" width={58} height={29} /></div>
+                <div className="connection-provider-copy"><div><h3>Bytenode</h3><span>{profile.hasBytenode ? "연결됨" : "연결되지 않음"}</span></div><p>Bytenode 계정으로 이 DS-GO 계정에 로그인합니다.</p></div>
+                {profile.hasBytenode ? (
+                  <button type="button" className="settings-btn settings-btn-ghost" onClick={unlinkBytenode} disabled={saving === "unlink-bytenode" || (!profile.hasPassword && !profile.hasOrya)}>{saving === "unlink-bytenode" ? "해제 중…" : "연결 해제"}</button>
+                ) : <a className="settings-btn" href="/api/account/bytenode/link">계정 연결</a>}
+              </article>
+
+              <article className={`connection-provider${profile.hasOrya ? " is-connected" : ""}`}>
+                <div className="connection-provider-logo"><Image src="/orya-logo.png" alt="오량인" width={38} height={38} /></div>
+                <div className="connection-provider-copy"><div><h3>오량인</h3><span>{profile.hasOrya ? "연결됨" : "연결되지 않음"}</span></div><p>오량인 OAuth 계정으로 이 DS-GO 계정에 로그인합니다.</p></div>
+                {profile.hasOrya ? (
+                  <button type="button" className="settings-btn settings-btn-ghost" onClick={unlinkOrya} disabled={saving === "unlink-orya" || (!profile.hasPassword && !profile.hasBytenode)}>{saving === "unlink-orya" ? "해제 중…" : "연결 해제"}</button>
+                ) : <a className="settings-btn" href="/api/account/orya/link">계정 연결</a>}
+              </article>
+
+              <article className="connection-provider is-pending">
+                <div className="connection-provider-logo"><Image src="/superschool-logo.svg" alt="슈퍼스쿨" width={38} height={38} /></div>
+                <div className="connection-provider-copy"><div><h3>슈퍼스쿨</h3><span>공식 연동 준비 중</span></div><p>공식 OAuth 또는 승인된 계정 연동 API가 제공되면 연결할 수 있습니다. DS-GO는 슈퍼스쿨 비밀번호를 직접 받지 않습니다.</p></div>
+                <button type="button" className="settings-btn settings-btn-ghost" disabled>준비 중</button>
+              </article>
+            </div>
+
+            {profile.hasBytenode && !profile.hasPassword && !profile.hasOrya && <p className="connection-note">Bytenode가 현재 유일한 로그인 수단입니다. 오량인을 연결하거나 ds-go 비밀번호를 만든 뒤 해제할 수 있습니다.</p>}
+            {profile.hasOrya && !profile.hasPassword && !profile.hasBytenode && <p className="connection-note">오량인이 현재 유일한 로그인 수단입니다. Bytenode를 연결하거나 ds-go 비밀번호를 만든 뒤 해제할 수 있습니다.</p>}
+            <footer className="connection-modal-footer"><p>계정은 이메일이 같다는 이유만으로 자동 병합되지 않습니다. 현재 로그인한 상태에서 직접 인증한 계정만 연결됩니다.</p><button type="button" className="settings-btn settings-btn-ghost" onClick={() => setConnectionsOpen(false)}>닫기</button></footer>
+          </section>
+        </div>
+      )}
     </div>
   );
 }
