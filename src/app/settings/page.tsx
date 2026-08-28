@@ -28,6 +28,37 @@ type InboxMessage = {
   readAt: number | null;
 };
 
+type ReportStatus = "pending" | "reviewing" | "resolved" | "dismissed";
+
+type MyReport = {
+  id: string;
+  targetUsername: string;
+  targetDisplayName: string;
+  reason: string;
+  status: ReportStatus;
+  createdAt: number;
+  updatedAt: number;
+  handledAt: number | null;
+};
+
+const REPORT_STATUS_LABEL: Record<ReportStatus, string> = {
+  pending: "접수 대기 중",
+  reviewing: "처리 중",
+  resolved: "처리 완료",
+  dismissed: "기각",
+};
+
+const REPORT_STATUS_HINT: Record<ReportStatus, string> = {
+  pending: "관리자가 아직 확인하기 전입니다.",
+  reviewing: "관리자가 내용을 확인하고 있습니다.",
+  resolved: "관리자 확인 후 처리가 끝난 신고입니다.",
+  dismissed: "관리자가 조치가 필요하지 않다고 판단했습니다.",
+};
+
+function reportStatusOf(value: unknown): ReportStatus {
+  return value === "reviewing" || value === "resolved" || value === "dismissed" ? value : "pending";
+}
+
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_display_name: "표시 이름은 1~40자로 입력해주세요.",
   invalid_email: "이메일 형식을 확인해주세요.",
@@ -83,6 +114,8 @@ export default function SettingsPage() {
   const [reportReason, setReportReason] = useState("");
   const [inbox, setInbox] = useState<InboxMessage[]>([]);
   const [inboxLoading, setInboxLoading] = useState(true);
+  const [myReports, setMyReports] = useState<MyReport[]>([]);
+  const [reportsLoading, setReportsLoading] = useState(true);
   const [deleteUsername, setDeleteUsername] = useState("");
   const [deletePassword, setDeletePassword] = useState("");
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -117,9 +150,22 @@ export default function SettingsPage() {
     }
   }, []);
 
+  const loadMyReports = useCallback(async () => {
+    setReportsLoading(true);
+    try {
+      const response = await accountFetch("/api/account/reports");
+      const data = await response.json().catch(() => null);
+      const items = response.ok && Array.isArray(data?.reports) ? data.reports : [];
+      setMyReports(items.map((item: MyReport) => ({ ...item, status: reportStatusOf(item.status) })));
+    } finally {
+      setReportsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     loadProfile();
     loadInbox();
+    loadMyReports();
     const params = new URLSearchParams(window.location.search);
     const bytenodeStatus = params.get("bytenode");
     const oryaStatus = params.get("orya");
@@ -130,7 +176,7 @@ export default function SettingsPage() {
     else if (bytenodeStatus === "linked") setMessage({ text: "Bytenode 계정이 연결되었습니다." });
     else if (bytenodeStatus === "already_linked") setMessage({ text: "해당 Bytenode 계정은 이미 다른 ds-go 계정에 연결되어 있습니다.", error: true });
     else if (bytenodeStatus) setMessage({ text: "Bytenode 계정 연결을 완료하지 못했습니다. 다시 시도해주세요.", error: true });
-  }, [loadInbox, loadProfile]);
+  }, [loadInbox, loadMyReports, loadProfile]);
 
   useEffect(() => {
     if (!connectionsOpen) return;
@@ -241,6 +287,11 @@ export default function SettingsPage() {
     if (response.ok) {
       setTargetUsername(""); setTargetDisplayName(""); setReportReason("");
       setMessage({ text: "신고가 관리자에게 안전하게 접수되었습니다." });
+      if (data?.report) {
+        setMyReports(items => [{ ...data.report, status: reportStatusOf(data.report.status) }, ...items]);
+      } else {
+        void loadMyReports();
+      }
     } else showResult(data, "신고를 접수하지 못했습니다.");
     setSaving(null);
   }
@@ -316,7 +367,7 @@ export default function SettingsPage() {
               <p>@{profile.username}</p>
               <span className="account-role">{profile.role}</span>
               <nav aria-label="설정 항목">
-                <a href="#profile">기본 정보</a><a href="#email">이메일 인증</a><a href="#login">로그인 및 보안</a><a href="#connections">연결된 계정</a><a href="#preferences">개인 설정</a><a href="#inbox">받은편지함{inbox.some(item => !item.readAt) ? ` (${inbox.filter(item => !item.readAt).length})` : ""}</a><a href="#report">사용자 신고</a>
+                <a href="#profile">기본 정보</a><a href="#email">이메일 인증</a><a href="#login">로그인 및 보안</a><a href="#connections">연결된 계정</a><a href="#preferences">개인 설정</a><a href="#inbox">받은편지함{inbox.some(item => !item.readAt) ? ` (${inbox.filter(item => !item.readAt).length})` : ""}</a><a href="#report">사용자 신고</a><a href="#report-status">내 신고 현황</a>
               </nav>
             </aside>
 
@@ -416,6 +467,29 @@ export default function SettingsPage() {
                   <small>허위 신고나 반복 신고는 서비스 이용 제한 사유가 될 수 있습니다. 접수 내용은 관리자만 확인합니다.</small>
                   <button className="settings-btn settings-btn-danger" disabled={saving === "report"}>{saving === "report" ? "접수 중…" : "관리자에게 신고 보내기"}</button>
                 </form>
+              </section>
+
+              <section id="report-status" className="account-card">
+                <div className="account-card-title"><div><span>REPORT STATUS</span><h3>내 신고 현황</h3></div><p>관리자가 처리한 결과가 이곳에 바로 반영됩니다. 관리자 내부 메모는 공개되지 않습니다.</p></div>
+                <div className="account-reports">
+                  {reportsLoading ? <p className="account-list-empty">신고 내역을 불러오는 중…</p> : myReports.length === 0 ? <p className="account-list-empty">접수한 신고가 없습니다.</p> : myReports.map(item => (
+                    <article className={`account-report is-${item.status}`} key={item.id}>
+                      <div className="account-report-head">
+                        <div>
+                          <strong>{item.targetDisplayName || item.targetUsername || "대상 미상"}</strong>
+                          {item.targetUsername && <small>@{item.targetUsername}</small>}
+                        </div>
+                        <span className="account-report-state">{REPORT_STATUS_LABEL[item.status]}</span>
+                      </div>
+                      <p className="account-report-reason">{item.reason}</p>
+                      <small className="account-report-meta">
+                        {REPORT_STATUS_HINT[item.status]}
+                        {" · 접수 "}{new Date(item.createdAt).toLocaleString("ko-KR")}
+                        {item.handledAt ? ` · 처리 ${new Date(item.handledAt).toLocaleString("ko-KR")}` : ""}
+                      </small>
+                    </article>
+                  ))}
+                </div>
               </section>
 
               <section className="account-card account-danger-card">
