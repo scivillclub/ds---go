@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { safeFromOrigin } from "@/lib/returnOrigins";
 
 type Profile = {
   id: string;
@@ -87,30 +88,6 @@ const ERROR_MESSAGES: Record<string, string> = {
 };
 
 const ACCOUNT_URL = process.env.NEXT_PUBLIC_DSGO_ACCOUNT_URL || "https://dsgoaccount.vercel.app";
-
-// 다른 서비스에서 계정 설정으로 들어왔을 때 로그아웃 후 돌려보낼 수 있는 출처.
-// 열린 리다이렉트를 막기 위해 알려진 서비스만 허용한다.
-const RETURN_ORIGINS = [
-  "https://scivill.vercel.app",
-  "https://scivill-admin.vercel.app",
-  "https://scivill-deepthink.vercel.app",
-  "https://scivill-nodetask.vercel.app",
-  "https://scivill-sheet.vercel.app",
-  "https://scivill-oryaform.vercel.app",
-  "https://scivill-qrlink.vercel.app",
-  ...(process.env.NEXT_PUBLIC_RETURN_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean),
-];
-
-/** ?from= 으로 넘어온 출처가 허용 목록에 있으면 그 origin을 돌려준다. */
-function safeFromOrigin(value: string | null): string | null {
-  if (!value) return null;
-  try {
-    const origin = new URL(value).origin;
-    return RETURN_ORIGINS.includes(origin) ? origin : null;
-  } catch {
-    return null;
-  }
-}
 
 async function accountFetch(path: string, init: RequestInit = {}) {
   return fetch(path, {
