@@ -88,6 +88,30 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 const ACCOUNT_URL = process.env.NEXT_PUBLIC_DSGO_ACCOUNT_URL || "https://dsgoaccount.vercel.app";
 
+// 다른 서비스에서 계정 설정으로 들어왔을 때 로그아웃 후 돌려보낼 수 있는 출처.
+// 열린 리다이렉트를 막기 위해 알려진 서비스만 허용한다.
+const RETURN_ORIGINS = [
+  "https://scivill.vercel.app",
+  "https://scivill-admin.vercel.app",
+  "https://scivill-deepthink.vercel.app",
+  "https://scivill-nodetask.vercel.app",
+  "https://scivill-sheet.vercel.app",
+  "https://scivill-oryaform.vercel.app",
+  "https://scivill-qrlink.vercel.app",
+  ...(process.env.NEXT_PUBLIC_RETURN_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean),
+];
+
+/** ?from= 으로 넘어온 출처가 허용 목록에 있으면 그 origin을 돌려준다. */
+function safeFromOrigin(value: string | null): string | null {
+  if (!value) return null;
+  try {
+    const origin = new URL(value).origin;
+    return RETURN_ORIGINS.includes(origin) ? origin : null;
+  } catch {
+    return null;
+  }
+}
+
 async function accountFetch(path: string, init: RequestInit = {}) {
   return fetch(path, {
     ...init,
@@ -99,6 +123,8 @@ async function accountFetch(path: string, init: RequestInit = {}) {
 
 export default function SettingsPage() {
   const router = useRouter();
+  // 이 설정 화면으로 보낸 사이트 (scivill 등). 로그아웃 뒤 돌아갈 곳이다.
+  const [fromOrigin, setFromOrigin] = useState<string | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
@@ -162,6 +188,10 @@ export default function SettingsPage() {
     } finally {
       setReportsLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    setFromOrigin(safeFromOrigin(new URLSearchParams(window.location.search).get("from")));
   }, []);
 
   useEffect(() => {
@@ -312,9 +342,16 @@ export default function SettingsPage() {
   // ds-go 세션만 끊으면 중앙 계정 쿠키가 남아 다음 로그인 화면에서 곧바로
   // SSO로 다시 들어온다. 서드파티 쿠키를 막는 브라우저에서도 확실하도록
   // fetch가 아니라 최상위 이동으로 중앙 세션까지 종료한다.
+  //
+  // 다른 사이트(?from=)에서 들어왔다면 그 사이트의 세션도 남아 있으므로,
+  // 중앙 로그아웃의 도착지를 그 사이트의 로그아웃 주소로 잡는다.
+  // ds-go → 중앙 계정 → 원래 사이트 순으로 쿠키가 모두 지워지고 원래 사이트로 돌아간다.
   async function endAllSessions() {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => null);
-    window.location.href = `${ACCOUNT_URL}/api/auth/logout?redirect_uri=${encodeURIComponent(window.location.origin)}`;
+    const destination = fromOrigin
+      ? `${fromOrigin}/api/auth/logout?return_to=${encodeURIComponent("/")}`
+      : window.location.origin;
+    window.location.href = `${ACCOUNT_URL}/api/auth/logout?redirect_uri=${encodeURIComponent(destination)}`;
   }
 
   async function logout() {
@@ -499,7 +536,7 @@ export default function SettingsPage() {
               </section>
 
               <section className="account-card account-danger-card">
-                <div className="account-card-title"><div><span>SESSION</span><h3>현재 브라우저에서 로그아웃</h3></div><p>ds-go와 중앙 계정의 로그인 세션을 함께 종료하고 로그인 화면으로 돌아갑니다.</p></div>
+                <div className="account-card-title"><div><span>SESSION</span><h3>현재 브라우저에서 로그아웃</h3></div><p>{fromOrigin ? `ds-go·중앙 계정과 ${new URL(fromOrigin).hostname}의 로그인 세션을 모두 종료하고 원래 있던 곳으로 돌아갑니다.` : "ds-go와 중앙 계정의 로그인 세션을 함께 종료하고 로그인 화면으로 돌아갑니다."}</p></div>
                 <button className="settings-btn settings-btn-danger" onClick={logout}>로그아웃</button>
               </section>
 
