@@ -4,6 +4,8 @@
  */
 export const RETURN_ORIGINS = [
   "https://scivill.vercel.app",
+  "https://scivillclub.kro.kr",
+  "https://deepthink.kro.kr",
   "https://scivill-admin.vercel.app",
   "https://scivill-deepthink.vercel.app",
   "https://scivill-nodetask.vercel.app",
